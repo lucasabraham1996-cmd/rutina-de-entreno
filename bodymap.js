@@ -74,3 +74,13 @@ function install(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,80));else setTimeout(install,80);
 })();
+
+/* Carga el módulo de reinicio diario y seguimiento de cardio */
+(()=>{
+  if(document.getElementById('cardioTrackingScript'))return;
+  const s=document.createElement('script');
+  s.id='cardioTrackingScript';
+  s.src='./cardio-tracking.js?v=1';
+  s.defer=true;
+  document.head.appendChild(s);
+})();
