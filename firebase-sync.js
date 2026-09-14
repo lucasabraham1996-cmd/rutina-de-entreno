@@ -13,7 +13,7 @@
   const PROFILE_ID='lucas-rutina';
   const CUSTOM_KEY='rutinaEntreno.custom.v2';
   const DONE_META_KEY='rutinaEntreno.doneMeta.v1';
-  let db=null, profileRef=null, ready=false, syncing=false;
+  let db=null, profileRef=null, ready=false, syncing=false, lastError=null;
 
   function uid(prefix='r'){
     if(window.crypto&&crypto.randomUUID)return `${prefix}-${crypto.randomUUID()}`;
@@ -32,14 +32,36 @@
     const card=document.createElement('div');
     card.id='firebaseStateCard';
     card.style.cssText='margin:0 0 12px;background:#fff;border-radius:22px;padding:14px 15px;box-shadow:0 1px 2px rgba(0,0,0,.05);display:flex;gap:12px;align-items:center';
-    card.innerHTML='<div style="width:42px;height:42px;border-radius:13px;background:#e8f3ff;color:#007aff;display:grid;place-items:center;font-size:20px">☁️</div><div style="flex:1"><b style="display:block;font-size:14px">Guardado en Firebase</b><span id="firebaseStateText" style="display:block;font-size:12px;color:#6e6e73;margin-top:2px">Conectando…</span></div><span id="firebaseStateDot" style="width:9px;height:9px;border-radius:50%;background:#ff9f0a"></span>';
+    card.innerHTML='<div style="width:42px;height:42px;border-radius:13px;background:#e8f3ff;color:#007aff;display:grid;place-items:center;font-size:20px">☁️</div><div style="flex:1"><b style="display:block;font-size:14px">Guardado en Firebase</b><span id="firebaseStateText" style="display:block;font-size:12px;color:#6e6e73;margin-top:2px;line-height:1.35">Conectando…</span><small id="firebaseStateCode" style="display:none;color:#8e8e93;font-size:10px;margin-top:3px"></small></div><span id="firebaseStateDot" style="width:9px;height:9px;border-radius:50%;background:#ff9f0a;flex:0 0 auto"></span>';
     target.parentNode.insertBefore(card,target);
   }
-  function setStatus(text,state='pending'){
+  function setStatus(text,state='pending',code=''){
     injectStatusUI();
-    const t=document.getElementById('firebaseStateText'),d=document.getElementById('firebaseStateDot');
+    const t=document.getElementById('firebaseStateText'),d=document.getElementById('firebaseStateDot'),c=document.getElementById('firebaseStateCode');
     if(t)t.textContent=text;
     if(d)d.style.background=state==='ok'?'#34c759':state==='error'?'#ff3b30':'#ff9f0a';
+    if(c){c.textContent=code?`Código: ${code}`:'';c.style.display=code?'block':'none';}
+  }
+  function cleanCode(err){return String(err?.code||'').replace(/^firestore\//,'').replace(/^firebase\//,'')||'desconocido'}
+  function describeFirebaseError(err,context='Firebase'){
+    const code=cleanCode(err);
+    const map={
+      'permission-denied':'Firestore bloqueó el acceso. Hay que revisar las reglas de seguridad.',
+      'unauthenticated':'Firestore exige iniciar sesión antes de leer o guardar.',
+      'failed-precondition':'Firestore todavía no está listo o falta crear/configurar la base de datos.',
+      'not-found':'No encontré la base de datos Firestore predeterminada del proyecto.',
+      'unavailable':'Firebase está temporalmente inaccesible o el iPhone está sin conexión.',
+      'deadline-exceeded':'Firebase tardó demasiado en responder. Volvé a intentar con conexión estable.',
+      'resource-exhausted':'Firebase rechazó la operación por cuota o límite del proyecto.',
+      'invalid-argument':'Firebase rechazó una operación por configuración o datos inválidos.',
+      'network-request-failed':'No se pudo conectar con los servidores de Firebase.'
+    };
+    return `${map[code]||`${context} devolvió un error (${code}).`} Tus datos siguen guardados en este iPhone.`;
+  }
+  function reportError(err,context='Firebase'){
+    lastError={code:cleanCode(err),message:String(err?.message||err||''),context,at:new Date().toISOString()};
+    console.warn(context,err);
+    setStatus(describeFirebaseError(err,context),'error',lastError.code);
   }
 
   function getCustom(){return read(CUSTOM_KEY,{weekKey:weekKey(),weekOff:[],dayOff:{}})}
@@ -62,8 +84,9 @@
         lastSeenAt:firebase.firestore.FieldValue.serverTimestamp(),
         ...extra
       },{merge:true});
-      setStatus('Todo sincronizado','ok');
-    }catch(err){console.warn('Firebase profile sync',err);setStatus('Guardado local · Firebase pendiente','error')}
+      lastError=null;
+      setStatus('Todo sincronizado con Firebase','ok');
+    }catch(err){reportError(err,'Firebase al guardar cambios')}
   }
 
   function normalizeSession(x){
@@ -87,7 +110,7 @@
     try{
       await profileRef.collection('sessions').doc(payload.id).set({...payload,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
       await syncProfile();
-    }catch(err){console.warn('Firebase session',err);setStatus('Sesión guardada local · sync pendiente','error')}
+    }catch(err){reportError(err,'Firebase al guardar la sesión')}
   }
   async function saveProgressCloud(payload){
     if(!ready)return;
@@ -95,16 +118,17 @@
       await profileRef.collection('progress').doc(payload.id).set({...payload,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
       const extra={}; if(payload.weight!==''&&payload.weight!=null)extra.lastWeight=Number(payload.weight);
       await syncProfile(extra);
-    }catch(err){console.warn('Firebase progress',err);setStatus('Peso guardado local · sync pendiente','error')}
+    }catch(err){reportError(err,'Firebase al guardar el peso')}
   }
 
   async function hydrate(){
     if(!ready||syncing)return; syncing=true; setStatus('Sincronizando con Firebase…');
     try{
-      const [profile,sessions,progress]=await Promise.all([
-        profileRef.get(),
-        profileRef.collection('sessions').orderBy('updatedAt','desc').limit(80).get(),
-        profileRef.collection('progress').orderBy('updatedAt','desc').limit(80).get()
+      // Lecturas simples: evitamos depender de índices para el arranque de la app.
+      const profile=await profileRef.get();
+      const [sessions,progress]=await Promise.all([
+        profileRef.collection('sessions').limit(80).get(),
+        profileRef.collection('progress').limit(80).get()
       ]);
       const p=profile.exists?profile.data():{};
       const localCustom=getCustom(), cloudCustom=p.customization||null;
@@ -129,10 +153,10 @@
       if(typeof renderHistory==='function')renderHistory();
       if(typeof renderProgressHistory==='function')renderProgressHistory();
       if(typeof updateHeroWeight==='function')updateHeroWeight();
-      setStatus('Todo sincronizado','ok');
+      lastError=null;
+      setStatus('Todo sincronizado con Firebase','ok');
     }catch(err){
-      console.warn('Firebase hydrate',err);
-      setStatus('Tus datos siguen guardados en este iPhone · Firebase no respondió','error');
+      reportError(err,'Firebase al sincronizar');
     }finally{syncing=false}
   }
 
@@ -169,17 +193,17 @@
 
   async function start(){
     injectStatusUI();
-    if(!window.firebase||!firebase.firestore){setStatus('Firebase SDK no cargó · guardado local activo','error');return;}
+    if(!window.firebase||!firebase.firestore){setStatus('El SDK de Firebase no cargó. Tus datos siguen guardados en este iPhone.','error','sdk-no-cargado');return;}
     try{
       if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
       db=firebase.firestore(); profileRef=db.collection('rutinaEntreno').doc(PROFILE_ID);
-      try{await db.enablePersistence({synchronizeTabs:true});}catch(e){if(!['failed-precondition','unimplemented'].includes(e.code))console.warn(e)}
+      try{await db.enablePersistence({synchronizeTabs:true});}catch(e){if(!['failed-precondition','unimplemented'].includes(cleanCode(e)))console.warn('Persistencia Firestore',e)}
       ready=true; installOverrides(); await hydrate();
       window.addEventListener('online',()=>{setStatus('Reconectando…');hydrate();syncProfile();});
       document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')hydrate();});
-    }catch(err){console.warn('Firebase init',err);setStatus('Guardado local activo · revisá Firestore','error');}
+    }catch(err){reportError(err,'Firebase al iniciar')}
   }
 
-  window.RutinaFirebase={hydrate,syncProfile,isReady:()=>ready};
+  window.RutinaFirebase={hydrate,syncProfile,isReady:()=>ready,lastError:()=>lastError,config:()=>({...firebaseConfig,apiKey:'***'})};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,50));else setTimeout(start,50);
 })();
