@@ -1,13 +1,15 @@
 {
   "name": "Rutina de Entreno · Fútbol & Definición",
   "short_name": "Rutina Entreno",
-  "description": "Rutina semanal de 45 minutos orientada a fuerza, resistencia, fútbol, brazos, core y gemelos.",
+  "description": "Rutina semanal orientada a bajar grasa, ganar fuerza útil, mejorar el estado para fútbol y fortalecer gemelos.",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone"],
   "orientation": "portrait-primary",
-  "background_color": "#F5F7FA",
-  "theme_color": "#102A43",
+  "background_color": "#F8FAFD",
+  "theme_color": "#F8FAFD",
   "lang": "es-AR",
   "icons": [
     {
