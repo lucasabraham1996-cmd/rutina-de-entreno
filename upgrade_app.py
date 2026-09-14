@@ -23,8 +23,13 @@ style='''\n<style id="firebaseUiStyle">.daily-weigh-card{margin:0 0 12px;backgro
 if 'firebaseUiStyle' not in t:
     t=t.replace('</head>',style+'</head>',1)
 
+if 'alternatives.css' not in t:
+    t=t.replace('  <link rel="stylesheet" href="ios.css?v=4" />', '  <link rel="stylesheet" href="ios.css?v=4" />\n  <link rel="stylesheet" href="alternatives.css?v=1" />', 1)
+
 custom='''  <script src="customize.js?v=4"></script>'''
 if 'firebase-sync.js' not in t:
     t=t.replace(custom, custom+'\n  <script src="firebase-sync.js?v=1"></script>',1)
+if 'alternatives.js' not in t:
+    t=t.replace('  <script src="firebase-sync.js?v=1"></script>', '  <script src="firebase-sync.js?v=1"></script>\n  <script src="alternatives.js?v=1"></script>', 1)
 
 p.write_text(t,encoding='utf-8')
