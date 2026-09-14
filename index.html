@@ -157,7 +157,7 @@
           <div class="field"><label>Esfuerzo general (RPE)</label><div class="range-line"><input type="range" id="rpe" min="1" max="10" value="6"><span class="range-badge" id="rpeVal">6/10</span></div></div>
           <div class="field"><label>Dolor/molestia de gemelo</label><div class="range-line"><input type="range" id="calfPain" min="0" max="10" value="0"><span class="range-badge" id="calfVal">0/10</span></div><div class="note" id="painHint"></div></div>
           <div class="field"><label>Notas</label><textarea id="sessionNotes" placeholder="Ej.: me sentí liviano, gemelo derecho cargado…"></textarea></div>
-          <button class="primary" id="saveSessionBtn" onclick="saveSession()">Guardar sesión en la hoja</button>
+          <button class="primary" id="saveSessionBtn" onclick="saveSession()">Guardar sesión</button>
         </div>
       </section>
 
@@ -180,7 +180,7 @@
         <div id="tutorialLibrary" class="guide-grid"></div>
       </section>
 
-      <section id="screen-history" class="screen"><div class="section-title"><h2>Últimas sesiones</h2><small>desde la hoja</small></div><div id="history" class="history"></div></section>
+      <section id="screen-history" class="screen"><div class="section-title"><h2>Últimas sesiones</h2><small>Firebase + dispositivo</small></div><div id="history" class="history"></div></section>
       <section id="screen-progress" class="screen">
         <div class="section-title"><h2>Tu cambio físico</h2><small>mirá la tendencia</small></div>
         <div class="daily-weigh-card"><div class="daily-weigh-icon">⚖️</div><div><b>Pesaje diario · 20:30</b><span>Todos los días, antes de cenar. Registrá el peso acá para mantener actualizada tu evolución.</span></div></div>
@@ -307,7 +307,7 @@ function saveSession(){
     syncLocalHistory();renderHistory();toast('✅ Sesión guardada en este dispositivo');return;
   }
   setBusy('saveSessionBtn',true,'Guardando…');
-  google.script.run.withSuccessHandler(()=>{toast('✅ Sesión guardada');doneSet.clear();setBusy('saveSessionBtn',false,'Guardar sesión en la hoja');refresh();}).withFailureHandler(e=>{toast('Error: '+e.message);setBusy('saveSessionBtn',false,'Guardar sesión en la hoja');}).saveSession(payload);
+  google.script.run.withSuccessHandler(()=>{toast('✅ Sesión guardada');doneSet.clear();setBusy('saveSessionBtn',false,'Guardar sesión');refresh();}).withFailureHandler(e=>{toast('Error: '+e.message);setBusy('saveSessionBtn',false,'Guardar sesión');}).saveSession(payload);
 }
 function saveProgress(){
   const payload={date:val('progressDate'),weight:val('weight'),waist:val('waist'),restingHr:val('restingHr'),note:val('progressNote')};
