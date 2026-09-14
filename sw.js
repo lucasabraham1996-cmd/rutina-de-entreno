@@ -1,4 +1,4 @@
-const CACHE='rutina-entreno-v1';
+const CACHE='rutina-entreno-v2';
 const CORE=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
