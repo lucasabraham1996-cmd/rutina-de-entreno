@@ -11,6 +11,8 @@ if 'firebase-firestore-compat.js' not in t:
 old='''<div id="standaloneMsg" class="standalone" style="display:none">Modo móvil: la app guarda tus sesiones y mediciones en este dispositivo. La sincronización con Google Sheets puede conectarse después sin cambiar el diseño.</div>'''
 new='''<div id="standaloneMsg" class="standalone" style="display:none">Tus cambios se guardan primero en este dispositivo y se sincronizan con Firebase cuando hay conexión.</div>'''
 t=t.replace(old,new)
+t=t.replace('Guardar sesión en la hoja','Guardar sesión')
+t=t.replace('<small>desde la hoja</small>','<small>Firebase + dispositivo</small>')
 
 marker='''        <div class="form-card"><h3>Registrar medición</h3>'''
 weigh='''        <div class="daily-weigh-card"><div class="daily-weigh-icon">⚖️</div><div><b>Pesaje diario · 20:30</b><span>Todos los días, antes de cenar. Registrá el peso acá para mantener actualizada tu evolución.</span></div></div>\n'''
