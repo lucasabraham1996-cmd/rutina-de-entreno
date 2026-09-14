@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Acceso temporal SOLO a la ruta usada por Rutina de Entreno.
+    // No abre las demás colecciones del proyecto comidassaludables.
+    // IMPORTANTE: sigue siendo acceso público a esta ruta; reemplazar por Auth más adelante.
+    match /rutinaEntreno/lucas-rutina {
+      allow read, write: if true;
+
+      match /{document=**} {
+        allow read, write: if true;
+      }
+    }
+
+    // Todo lo demás permanece bloqueado por estas reglas.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
