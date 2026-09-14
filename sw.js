@@ -1,4 +1,4 @@
-const CACHE='rutina-entreno-v6';
+const CACHE='rutina-entreno-v7';
 const CORE=['./','./index.html','./manifest.webmanifest','./ios.css','./customize.js','./firebase-sync.js','./alternatives.css','./alternatives.js'];
 
 self.addEventListener('install',event=>{
