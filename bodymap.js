@@ -47,22 +47,26 @@ function labelFor(set){
   const labels=[];
   const map=[['chest','Pecho'],['back','Espalda'],['shoulders','Hombros'],['biceps','Bíceps'],['triceps','Tríceps'],['core','Core'],['glutes','Glúteos'],['quads','Cuádriceps'],['hamstrings','Isquios'],['calves','Gemelos']];
   map.forEach(([k,l])=>{if(set.has(k))labels.push(l)});
-  if(!labels.length&&set.has('cardio'))return 'Cardio';
-  return labels.slice(0,2).join(' + ')||'General';
+  if(!labels.length&&set.has('cardio'))return 'Cardio general';
+  return labels.slice(0,3).join(' + ')||'Trabajo general';
 }
 function decorateCard(card){
   if(card.querySelector('.bodymap-mini'))return;
   const body=card.querySelector('.exercise-body');if(!body)return;
   const set=groups(card);
-  const el=document.createElement('div');el.className='bodymap-mini';el.innerHTML=figure(set)+`<div class="bodymap-label">Trabaja</div><div class="bodymap-legend">${labelFor(set)}</div>`;
-  body.appendChild(el);
+  const el=document.createElement('div');
+  el.className='bodymap-mini';
+  el.innerHTML=`<div class="bodymap-figure">${figure(set)}</div><div class="bodymap-copy"><div class="bodymap-label">Zonas principales</div><div class="bodymap-legend">${labelFor(set)}</div><div class="bodymap-hint">Violeta/naranja = músculos más implicados</div></div>`;
+  const works=body.querySelector('.works');
+  if(works)works.insertAdjacentElement('afterend',el);else body.appendChild(el);
 }
 function decorate(){document.querySelectorAll('#exerciseList .exercise').forEach(decorateCard)}
 function fixSheets(){
   const r=document.getElementById('routineSheet');if(r&&r.parentElement!==document.body)document.body.appendChild(r);
   const t=document.getElementById('tutorialModal');if(t&&t.parentElement!==document.body)document.body.appendChild(t);
 }
-function install(){fixSheets();decorate();
+function install(){
+  fixSheets();decorate();
   const root=document.getElementById('exerciseList');if(root)new MutationObserver(()=>requestAnimationFrame(decorate)).observe(root,{childList:true,subtree:true});
   new MutationObserver(()=>fixSheets()).observe(document.body,{childList:true,subtree:true});
   window.addEventListener('resize',fixSheets,{passive:true});
