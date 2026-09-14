@@ -33,3 +33,4 @@ if 'alternatives.js' not in t:
     t=t.replace('  <script src="firebase-sync.js?v=1"></script>', '  <script src="firebase-sync.js?v=1"></script>\n  <script src="alternatives.js?v=1"></script>', 1)
 
 p.write_text(t,encoding='utf-8')
+# Re-run marker: alternatives v1
