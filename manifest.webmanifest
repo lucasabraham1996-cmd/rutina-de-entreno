@@ -1,15 +1,14 @@
 {
-  "name": "Rutina de Entreno · Fútbol & Definición",
+  "name": "Rutina de Entreno",
   "short_name": "Rutina Entreno",
-  "description": "Rutina semanal orientada a bajar grasa, ganar fuerza útil, mejorar el estado para fútbol y fortalecer gemelos.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone"],
   "orientation": "portrait-primary",
-  "background_color": "#F2F2F7",
-  "theme_color": "#F2F2F7",
+  "background_color": "#F7F5FB",
+  "theme_color": "#7C3AED",
   "lang": "es-AR",
   "icons": [
     {
