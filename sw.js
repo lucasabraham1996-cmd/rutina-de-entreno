@@ -1,5 +1,5 @@
-const CACHE='rutina-entreno-v11';
-const CORE=['./','./index.html','./manifest.webmanifest','./ios.css','./premium.css','./customize.js','./firebase-sync.js','./alternatives.css','./alternatives.js','./bodymap.js','./cardio-tracking.js'];
+const CACHE='rutina-entreno-v12';
+const CORE=['./','./index.html','./manifest.webmanifest','./ios.css','./premium.css','./customize.js','./firebase-sync.js','./alternatives.css','./alternatives.js','./bodymap.js','./cardio-tracking.js','./optionb-baseline.js'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
