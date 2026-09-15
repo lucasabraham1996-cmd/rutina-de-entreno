@@ -84,3 +84,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   s.defer=true;
   document.head.appendChild(s);
 })();
+
+/* Carga peso inicial definitivo + Opción B como ejercicio visible */
+(()=>{
+  if(document.getElementById('optionBPrimaryScript'))return;
+  const s=document.createElement('script');
+  s.id='optionBPrimaryScript';
+  s.src='./optionb-baseline.js?v=1';
+  s.defer=true;
+  document.head.appendChild(s);
+})();
